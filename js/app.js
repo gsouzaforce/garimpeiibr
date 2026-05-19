@@ -3,15 +3,11 @@ const PER_PAGE = 20;
 let allProducts = [], filteredProducts = [];
 let page = 1;
 let activeNiche = 'todos', activePlatform = 'todos', activeCats = [], activeOrigins = [];
-let activeSort  = 'recentes', activeDiscount = 'todos', searchQuery = '';
-let priceRangeMin = 0, priceRangeMax = 0, priceFilterMin = 0, priceFilterMax = 0;
+let activeSort  = 'recentes', searchQuery = '';
+let discountMin = null, discountMax = null;
+let priceMin    = null, priceMax    = null;
+let minRating   = 0;
 let searchTimer;
-
-const DISCOUNT_OPTIONS = [
-  { v: 'todos', label: 'Qualquer desconto' },
-  { v: '20',   label: 'Acima de 20% OFF'  },
-  { v: '50',   label: 'Acima de 50% OFF'  },
-];
 
 // ── LOAD ─────────────────────────────────────────────────────────────────────
 async function loadProducts() {
@@ -30,19 +26,17 @@ async function loadProducts() {
       <div class="estado">
         <span class="estado-ico">⚠️</span>
         <p>Não foi possível carregar os produtos.</p>
-        <small>${e.message} — verifique se o webhook do n8n está ativo.</small>
       </div>`;
   }
 }
 
 // ── BUILD SIDEBAR ─────────────────────────────────────────────────────────────
 function buildFilters() {
-  const nichoCounts = {}, platCounts = {}, catCounts = {}, originCounts = {};
+  const nichoCounts = {}, platCounts = {}, catCounts = {};
   allProducts.forEach(p => {
     nichoCounts[p._niche]   = (nichoCounts[p._niche]   || 0) + 1;
     platCounts[p._platform] = (platCounts[p._platform] || 0) + 1;
     if (p.category) catCounts[p.category] = (catCounts[p.category] || 0) + 1;
-    if (p._origin)  originCounts[p._origin] = (originCounts[p._origin] || 0) + 1;
   });
 
   // Nicho
@@ -72,38 +66,6 @@ function buildFilters() {
       <span class="sidebar-count">${v === 'todos' ? allProducts.length : (catCounts[v] || 0)}</span>
     </div>`;
   }).join('');
-
-  // Desconto (single-select)
-  document.getElementById('discountFilters').innerHTML = DISCOUNT_OPTIONS.map(({ v, label }) => `
-    <div class="sidebar-item ${activeDiscount === v ? 'ativo' : ''}" data-value="${v}" onclick="setDiscount('${v}')">
-      <span class="sidebar-label">${label}</span>
-    </div>`).join('');
-
-  // Preço
-  const prices = allProducts.map(p => p.price).filter(v => v > 0);
-  if (prices.length) {
-    priceRangeMin = Math.floor(Math.min(...prices));
-    priceRangeMax = Math.ceil(Math.max(...prices));
-    priceFilterMin = priceRangeMin;
-    priceFilterMax = priceRangeMax;
-    const step = Math.max(1, Math.round((priceRangeMax - priceRangeMin) / 100));
-    document.getElementById('priceRangeWrap').innerHTML = `
-      <div class="price-labels">
-        <span id="priceValMin">${fmtBRL(priceFilterMin)}</span>
-        <span id="priceValMax">${fmtBRL(priceFilterMax)}</span>
-      </div>
-      <div class="price-slider-wrap">
-        <div class="price-track">
-          <div class="price-fill" id="priceFill" style="left:0%;right:0%"></div>
-        </div>
-        <input type="range" class="price-range" id="priceMin"
-               min="${priceRangeMin}" max="${priceRangeMax}" step="${step}"
-               value="${priceFilterMin}" oninput="onPriceMin(this.value)">
-        <input type="range" class="price-range" id="priceMax"
-               min="${priceRangeMin}" max="${priceRangeMax}" step="${step}"
-               value="${priceFilterMax}" oninput="onPriceMax(this.value)">
-      </div>`;
-  }
 
   updateActiveFilterCount();
 }
@@ -149,14 +111,6 @@ function removeCat(v) {
   page = 1; updateActiveFilterCount(); applyFilters();
 }
 
-function setDiscount(v) {
-  activeDiscount = v;
-  document.querySelectorAll('#discountFilters .sidebar-item').forEach(el =>
-    el.classList.toggle('ativo', el.dataset.value === v)
-  );
-  page = 1; updateActiveFilterCount(); applyFilters();
-}
-
 function setSort(v) {
   activeSort = v;
   const sel = document.getElementById('sortSelect');
@@ -173,16 +127,74 @@ function setSearch(q) {
   }, 200);
 }
 
+// ── DISCOUNT INPUTS ───────────────────────────────────────────────────────────
+function onDiscountMin(v) {
+  discountMin = v === '' ? null : Math.max(0, Math.min(100, parseInt(v) || 0));
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+function onDiscountMax(v) {
+  discountMax = v === '' ? null : Math.max(0, Math.min(100, parseInt(v) || 0));
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+function resetDiscountFilter() {
+  discountMin = null; discountMax = null;
+  const minEl = document.getElementById('discountMinInput');
+  const maxEl = document.getElementById('discountMaxInput');
+  if (minEl) minEl.value = '';
+  if (maxEl) maxEl.value = '';
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+// ── PRICE INPUTS ──────────────────────────────────────────────────────────────
+function onPriceMinInput(v) {
+  priceMin = v === '' ? null : Math.max(0, parseFloat(v) || 0);
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+function onPriceMaxInput(v) {
+  priceMax = v === '' ? null : Math.max(0, parseFloat(v) || 0);
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+function resetPriceInputFilter() {
+  priceMin = null; priceMax = null;
+  const minEl = document.getElementById('priceMinInput');
+  const maxEl = document.getElementById('priceMaxInput');
+  if (minEl) minEl.value = '';
+  if (maxEl) maxEl.value = '';
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+// ── RATING FILTER ─────────────────────────────────────────────────────────────
+function setMinRating(v) {
+  minRating = v;
+  document.querySelectorAll('#ratingFilters .sidebar-item').forEach(el =>
+    el.classList.toggle('ativo', parseInt(el.dataset.value) === v)
+  );
+  page = 1; updateActiveFilterCount(); applyFilters();
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
 function resetFilters() {
   activeNiche = 'todos'; activePlatform = 'todos';
   activeCats = []; activeOrigins = [];
-  activeSort = 'recentes'; activeDiscount = 'todos'; searchQuery = '';
+  activeSort = 'recentes'; searchQuery = '';
+  discountMin = null; discountMax = null;
+  priceMin = null; priceMax = null;
+  minRating = 0;
   const inp = document.getElementById('searchInput');
   if (inp) inp.value = '';
   const sel = document.getElementById('sortSelect');
   if (sel) sel.value = 'recentes';
+  ['discountMinInput', 'discountMaxInput', 'priceMinInput', 'priceMaxInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   page = 1;
   buildFilters();
+  setMinRating(0);
   applyFilters();
 }
 
@@ -194,57 +206,17 @@ function clearSearch() {
   applyFilters();
 }
 
-// ── PRICE RANGE ───────────────────────────────────────────────────────────────
-function onPriceMin(v) {
-  priceFilterMin = Math.min(parseInt(v), priceFilterMax - 1);
-  document.getElementById('priceMin').value = priceFilterMin;
-  updatePriceFill();
-  document.getElementById('priceValMin').textContent = fmtBRL(priceFilterMin);
-  page = 1; updateActiveFilterCount(); applyFilters();
-}
-
-function onPriceMax(v) {
-  priceFilterMax = Math.max(parseInt(v), priceFilterMin + 1);
-  document.getElementById('priceMax').value = priceFilterMax;
-  updatePriceFill();
-  document.getElementById('priceValMax').textContent = fmtBRL(priceFilterMax);
-  page = 1; updateActiveFilterCount(); applyFilters();
-}
-
-function updatePriceFill() {
-  const fill = document.getElementById('priceFill');
-  if (!fill || priceRangeMax === priceRangeMin) return;
-  const range = priceRangeMax - priceRangeMin;
-  const pct1 = ((priceFilterMin - priceRangeMin) / range) * 100;
-  const pct2 = ((priceFilterMax - priceRangeMin) / range) * 100;
-  fill.style.left  = pct1 + '%';
-  fill.style.right = (100 - pct2) + '%';
-}
-
-function resetPriceFilter() {
-  priceFilterMin = priceRangeMin;
-  priceFilterMax = priceRangeMax;
-  const minEl = document.getElementById('priceMin');
-  const maxEl = document.getElementById('priceMax');
-  if (minEl) minEl.value = priceFilterMin;
-  if (maxEl) maxEl.value = priceFilterMax;
-  updatePriceFill();
-  const vMin = document.getElementById('priceValMin');
-  const vMax = document.getElementById('priceValMax');
-  if (vMin) vMin.textContent = fmtBRL(priceFilterMin);
-  if (vMax) vMax.textContent = fmtBRL(priceFilterMax);
-  page = 1; updateActiveFilterCount(); applyFilters();
-}
-
+// ── ACTIVE FILTER COUNT ────────────────────────────────────────────────────────
 function updateActiveFilterCount() {
   let count = 0;
   if (activeNiche    !== 'todos') count++;
   if (activePlatform !== 'todos') count++;
   if (activeCats.length    > 0)   count++;
   if (activeOrigins.length > 0)   count++;
-  if (activeDiscount !== 'todos') count++;
-  if (searchQuery) count++;
-  if (priceFilterMin > priceRangeMin || priceFilterMax < priceRangeMax) count++;
+  if (discountMin !== null || discountMax !== null) count++;
+  if (priceMin    !== null || priceMax    !== null) count++;
+  if (minRating > 0)  count++;
+  if (searchQuery)    count++;
   const badge = document.getElementById('activeFilterCount');
   if (!badge) return;
   badge.textContent = count;
@@ -266,17 +238,16 @@ function sortProducts(list) {
 // ── FILTERS ───────────────────────────────────────────────────────────────────
 function applyFilters() {
   const q = searchQuery;
-  const priceActive = priceFilterMin > priceRangeMin || priceFilterMax < priceRangeMax;
   filteredProducts = allProducts.filter(p => {
     if (activeNiche    !== 'todos' && p._niche    !== activeNiche)         return false;
     if (activePlatform !== 'todos' && p._platform !== activePlatform)      return false;
     if (activeCats.length    > 0   && !activeCats.includes(p.category))   return false;
     if (activeOrigins.length > 0   && !activeOrigins.includes(p._origin)) return false;
-    if (activeDiscount !== 'todos') {
-      const min = parseInt(activeDiscount);
-      if (!p.discount || p.discount < min) return false;
-    }
-    if (priceActive && p.price > 0 && (p.price < priceFilterMin || p.price > priceFilterMax)) return false;
+    if (discountMin !== null && (p.discount || 0) < discountMin)           return false;
+    if (discountMax !== null && (p.discount || 0) > discountMax)           return false;
+    if (priceMin !== null && p.price > 0 && p.price < priceMin)            return false;
+    if (priceMax !== null && p.price > 0 && p.price > priceMax)            return false;
+    if (minRating > 0 && (p.rating_star || 0) < minRating)                return false;
     if (q && !(
       normalize(p.product_name || '').includes(q) ||
       normalize(p.category     || '').includes(q)
@@ -308,14 +279,14 @@ function renderGrid() {
   }
 
   grid.innerHTML = slice.map(p => {
-    const sc       = storeClass(p._platform);
-    const hasDisc  = p.discount > 0;
-    const hasPrice = p.price > 0;
-    const saving   = hasDisc && p.list_price > 0 ? fmtBRL(p.list_price - p.price) : null;
-    const rev      = fmtNum(p.reviews);
-    const dateStr  = fmtDate(p);
-    const logo     = platformLogo(p._platform);
-    const origin   = p._origin;
+    const sc         = storeClass(p._platform);
+    const hasDisc    = p.discount > 0;
+    const hasPrice   = p.price > 0;
+    const saving     = hasDisc && p.list_price > 0 ? fmtBRL(p.list_price - p.price) : null;
+    const rev        = fmtNum(p.reviews);
+    const dateStr    = fmtDate(p);
+    const logo       = platformLogo(p._platform);
+    const origin     = p._origin;
 
     const originPill = origin
       ? `<span class="origin-pill origin-${origin}">${originIcon(origin, 10)}<span>${ORIGIN_NAMES[origin]}</span></span>`
@@ -323,6 +294,23 @@ function renderGrid() {
     const datePill = dateStr
       ? `<span class="card-date"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Postado ${dateStr}</span>`
       : '';
+
+    let priceChangeBadge = '';
+    if (p.price_change_type && (p.price_difference || p.price_difference_percentage)) {
+      const isDown  = p.price_change_type === 'price_decreased';
+      const cls     = isDown ? 'price-change-down' : 'price-change-up';
+      const arrow   = isDown ? '↓' : '↑';
+      const verb    = isDown ? 'Preço abaixou' : 'Preço subiu';
+      const sign    = isDown ? '-' : '+';
+      const diffStr = p.price_difference ? fmtBRL(Math.abs(p.price_difference)) : '';
+      const pctStr  = p.price_difference_percentage ? Math.abs(Math.round(p.price_difference_percentage)) + '%' : '';
+      const prevStr = p.previous_price ? fmtBRL(p.previous_price) : 'valor anterior';
+      const tooltip = isDown
+        ? `Preço caiu de ${prevStr} para o valor atual`
+        : `Preço subiu de ${prevStr} para o valor atual`;
+      const detail = [diffStr, pctStr ? `(${pctStr})` : ''].filter(Boolean).join(' ');
+      priceChangeBadge = `<div class="price-change ${cls}" title="${esc(tooltip)}">${arrow} ${verb}${detail ? ': ' + sign + detail : ''} <span class="price-change-info" aria-hidden="true">ⓘ</span></div>`;
+    }
 
     return `<div class="card">
       <div class="card-img">
@@ -334,6 +322,7 @@ function renderGrid() {
         <span class="store-badge store-${sc}">${logo}</span>
       </div>
       <div class="card-body">
+        ${priceChangeBadge}
         ${p.category ? `<div class="card-cat">${esc(p.category)}</div>` : ''}
         <p class="card-name">${esc(p.product_name)}</p>
         ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} aval.</span>` : ''}</div>` : ''}
@@ -398,11 +387,17 @@ function renderActiveFilters() {
   activeCats.forEach(cat => chips.push(
     `<span class="filter-chip">${esc(cat)}<button onclick="removeCat('${esc(cat)}')" aria-label="Remover">✕</button></span>`
   ));
-  if (activeDiscount !== 'todos') chips.push(
-    `<span class="filter-chip">+${activeDiscount}% OFF<button onclick="setDiscount('todos')" aria-label="Remover">✕</button></span>`
-  );
-  if (priceFilterMin > priceRangeMin || priceFilterMax < priceRangeMax) chips.push(
-    `<span class="filter-chip">Preço: ${fmtBRL(priceFilterMin)}–${fmtBRL(priceFilterMax)}<button onclick="resetPriceFilter()" aria-label="Remover">✕</button></span>`
+  if (discountMin !== null || discountMax !== null) {
+    const lo = discountMin ?? 0, hi = discountMax ?? 100;
+    chips.push(`<span class="filter-chip">Desconto: ${lo}%–${hi}%<button onclick="resetDiscountFilter()" aria-label="Remover">✕</button></span>`);
+  }
+  if (priceMin !== null || priceMax !== null) {
+    const lo = priceMin !== null ? fmtBRL(priceMin) : 'R$ 0';
+    const hi = priceMax !== null ? fmtBRL(priceMax) : '∞';
+    chips.push(`<span class="filter-chip">Preço: ${lo}–${hi}<button onclick="resetPriceInputFilter()" aria-label="Remover">✕</button></span>`);
+  }
+  if (minRating > 0) chips.push(
+    `<span class="filter-chip">${minRating}+ estrelas<button onclick="setMinRating(0)" aria-label="Remover">✕</button></span>`
   );
   if (searchQuery) chips.push(
     `<span class="filter-chip">Busca: "${esc(searchQuery)}"<button onclick="clearSearch()" aria-label="Remover">✕</button></span>`

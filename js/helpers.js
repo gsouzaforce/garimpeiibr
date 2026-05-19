@@ -25,16 +25,21 @@ function nicheDisplayName(slug) {
     || slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
 }
 
-/* Pac-man G logo in niche color with drop shadow */
+const NICHE_LOGO_IMGS = {
+  'beleza':      './assets/images/logo/garimpeiibr-beleza.png',
+  'casa':        './assets/images/logo/garimpeiibr-casa.png',
+  'eletronicos': './assets/images/logo/garimpeiibr-eletronicos.png',
+  'esportes':    './assets/images/logo/garimpeiibr-esportes.png',
+  'mercado':     './assets/images/logo/garimpeiibr-mercado.png',
+  'moda':        './assets/images/logo/garimpeiibr-moda.png',
+};
+
 function nicheLogo(slug) {
-  const color = (NICHE_MAP[slug] || { color: '#888888' }).color;
-  const fid   = `ns_${slug.replace(/[^a-z0-9]/g, '_')}`;
-  return `<svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true" style="flex-shrink:0">
-    <defs><filter id="${fid}" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="5" dy="6" stdDeviation="3" flood-color="rgba(0,0,0,0.28)" flood-opacity="1"/>
-    </filter></defs>
-    <path d="M 50 50 L 87 24 A 45 45 0 1 0 87 76 Z" fill="${color}" filter="url(#${fid})"/>
-  </svg>`;
+  const src = NICHE_LOGO_IMGS[slug];
+  if (src) return `<img src="${src}" alt="${slug}" class="niche-logo-img" loading="lazy">`;
+  const color  = (NICHE_MAP[slug] || { color: '#888888' }).color;
+  const letter = nicheDisplayName(slug).charAt(0).toUpperCase();
+  return `<span class="niche-logo-fallback" style="background:${color}">${letter}</span>`;
 }
 
 /* ── PLATFORM ──────────────────────────────────────────────────────────────── */
