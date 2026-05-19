@@ -633,6 +633,8 @@ body {
   .sidebar.open { left: 0; }
   .btn-filters-toggle { display: flex; width: 100%; justify-content: center; }
   .btn-insta span { display: none; }
+  /* Navbar mobile: oculta nome da marca para caber Magazine + sociais em uma linha */
+  .nav-brand-name { display: none; }
 }
 
 @media (max-width: 480px) {
