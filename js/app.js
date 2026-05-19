@@ -9,23 +9,95 @@ let priceMin    = null, priceMax    = null;
 let minRating   = 0;
 let searchTimer;
 
+// ── CACHE ─────────────────────────────────────────────────────────────────────
+const CACHE_KEY = 'garimpeii_v1';
+
+function saveCache(raw) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: raw })); } catch (_) {}
+}
+
+function loadCache() {
+  try {
+    const s = localStorage.getItem(CACHE_KEY);
+    if (!s) return null;
+    const { ts, data } = JSON.parse(s);
+    return { data, age: Date.now() - ts };
+  } catch (_) { return null; }
+}
+
+function applyFromRaw(raw) {
+  allProducts = raw.map(p => ({
+    ...p,
+    _platform: detectPlatform(p.affiliate_link),
+    _niche:    detectNiche(p.niche_id),
+    _origin:   detectOrigin(p),
+  }));
+  buildFilters();
+  applyFilters();
+}
+
+function fmtCacheAge(ms) {
+  const mins  = Math.floor(ms / 60000);
+  const hours = Math.floor(ms / 3600000);
+  if (mins  <  1) return 'agora há pouco';
+  if (mins  < 60) return `há ${mins} min`;
+  if (hours < 24) return `há ${hours}h`;
+  return 'há mais de um dia';
+}
+
+function showCacheBanner(ageMs, isError = false) {
+  const el = document.getElementById('cacheBanner');
+  if (!el) return;
+  const age  = fmtCacheAge(ageMs);
+  const icon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  el.innerHTML = isError
+    ? `${icon}<span class="cache-banner-msg">Não foi possível atualizar. Exibindo dados salvos ${age}.</span><button class="cache-retry-btn" onclick="loadProducts()">Tentar novamente</button>`
+    : `${icon}<span class="cache-banner-msg">Atualizando lista… Exibindo dados salvos ${age}.</span>`;
+  el.style.display = 'flex';
+}
+
+function hideCacheBanner() {
+  const el = document.getElementById('cacheBanner');
+  if (el) el.style.display = 'none';
+}
+
 // ── LOAD ─────────────────────────────────────────────────────────────────────
-async function loadProducts() {
+async function loadProducts(attempt = 1) {
+  const MAX_ATTEMPTS = 3;
+  const RETRY_DELAY  = [0, 3000, 8000];
+  const cached = loadCache();
+
+  // Mostra cache imediatamente enquanto busca dados frescos
+  if (attempt === 1 && cached) {
+    applyFromRaw(cached.data);
+    showCacheBanner(cached.age);
+  }
+
   try {
     const raw = await fetchProducts();
-    allProducts = raw.map(p => ({
-      ...p,
-      _platform: detectPlatform(p.affiliate_link),
-      _niche:    detectNiche(p.niche_id),
-      _origin:   detectOrigin(p),
-    }));
-    buildFilters();
-    applyFilters();
+    saveCache(raw);
+    applyFromRaw(raw);
+    hideCacheBanner();
   } catch (e) {
+    if (cached) {
+      showCacheBanner(cached.age, true);
+      return;
+    }
+    if (attempt < MAX_ATTEMPTS) {
+      document.getElementById('grid').innerHTML = `
+        <div class="estado">
+          <span class="estado-ico load-spinner">⟳</span>
+          <p>Reconectando… (tentativa ${attempt + 1} de ${MAX_ATTEMPTS})</p>
+        </div>`;
+      setTimeout(() => loadProducts(attempt + 1), RETRY_DELAY[attempt]);
+      return;
+    }
     document.getElementById('grid').innerHTML = `
       <div class="estado">
         <span class="estado-ico">⚠️</span>
         <p>Não foi possível carregar os produtos.</p>
+        <small>Verifique sua conexão ou tente novamente em instantes.</small>
+        <button class="btn-retry" onclick="loadProducts()">Tentar novamente</button>
       </div>`;
   }
 }
@@ -325,7 +397,7 @@ function renderGrid() {
         ${priceChangeBadge}
         ${p.category ? `<div class="card-cat">${esc(p.category)}</div>` : ''}
         <p class="card-name">${esc(p.product_name)}</p>
-        ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} aval.</span>` : ''}</div>` : ''}
+        ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} avaliações</span>` : ''}</div>` : ''}
         <div class="card-price">
           ${hasPrice ? `<div class="price-current">${fmtBRL(p.price)}</div>` : ''}
           ${hasDisc && p.list_price > 0 ? `<div class="price-original">de ${fmtBRL(p.list_price)}</div>` : ''}
