@@ -28,7 +28,7 @@ function loadCache() {
 function applyFromRaw(raw) {
   allProducts = raw.map(p => ({
     ...p,
-    _platform: detectPlatform(p.affiliate_link),
+    _platform: detectPlatform(p.platform),
     _niche:    detectNiche(p.niche_id),
     _origin:   detectOrigin(p),
   }));
@@ -364,7 +364,7 @@ function renderGrid() {
       ? `<span class="origin-pill origin-${origin}">${originIcon(origin, 10)}<span>${ORIGIN_NAMES[origin]}</span></span>`
       : '';
     const datePill = dateStr
-      ? `<span class="card-date"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Postado ${dateStr}</span>`
+      ? `<span class="card-date"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${dateStr}</span>`
       : '';
 
     let priceChangeBadge = '';
@@ -397,6 +397,7 @@ function renderGrid() {
         ${priceChangeBadge}
         ${p.category ? `<div class="card-cat">${esc(p.category)}</div>` : ''}
         <p class="card-name">${esc(p.product_name)}</p>
+        ${(originPill || datePill) ? `<div class="card-footer">${originPill}${datePill}</div>` : ''}
         ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} avaliações</span>` : ''}</div>` : ''}
         <div class="card-price">
           ${hasPrice ? `<div class="price-current">${fmtBRL(p.price)}</div>` : ''}
@@ -407,7 +408,6 @@ function renderGrid() {
           Ver oferta
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
-        ${(originPill || datePill) ? `<div class="card-footer">${originPill}${datePill}</div>` : ''}
       </div>
     </div>`;
   }).join('');

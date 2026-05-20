@@ -482,9 +482,16 @@ body {
 .card-img-placeholder { font-size: 3.5rem; opacity: .35; }
 
 .discount-badge {
-  position: absolute; top: 8px; left: 8px;
-  background: var(--orange); color: #fff;
-  font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: rgba(22, 163, 74, 0.75);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.25);
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
   letter-spacing: .02em;
 }
 .store-badge {
@@ -537,9 +544,9 @@ body {
 .btn-deal svg { flex-shrink: 0; }
 
 .card-footer {
-  display: flex; align-items: center; justify-content: space-between; gap: 5px;
-  margin-top: .6rem; padding-top: .6rem;
-  border-top: 1px solid var(--border); flex-wrap: wrap;
+  align-items: center; gap: 5px; text-align: left;
+  margin-bottom: .6rem;
+  flex-wrap: wrap;
 }
 .card-date {
   display: flex; align-items: center; gap: 3px;

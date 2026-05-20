@@ -43,13 +43,13 @@ function nicheLogo(slug) {
 }
 
 /* ── PLATFORM ──────────────────────────────────────────────────────────────── */
-function detectPlatform(link) {
-  if (!link) return 'Outro';
-  const l = link.toLowerCase();
-  if (l.includes('amazon.com.br') || l.includes('amzn.to')) return 'Amazon';
-  if (l.includes('mercadolivre') || l.includes('meli.') || l.includes('mercadol')) return 'Mercado Livre';
-  if (l.includes('shopee.com.br')) return 'Shopee';
-  if (l.includes('magazinevoce') || l.includes('magazineluiza')) return 'Magazine Luiza';
+function detectPlatform(platform) {
+  if (!platform) return 'Outro';
+  const l = platform.toLowerCase();
+  if (platform === 'amazon') return 'Amazon';
+  if (platform === 'mercadolivre') return 'Mercado Livre';
+  if (platform === 'shopee') return 'Shopee';
+  if (platform === 'magazineluiza') return 'Magazine Luiza';
   return 'Outro';
 }
 
