@@ -367,6 +367,7 @@ function renderGrid() {
     const datePill = dateStr
       ? `<span class="card-date"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${dateStr}</span>`
       : '';
+    const discPill = hasDisc ? `<span class="discount-pill">-${Math.round(p.discount)}%</span>` : '';
 
     let priceChangeBadge = '';
     if (p.price_change_type && (p.price_difference || p.price_difference_percentage)) {
@@ -393,15 +394,14 @@ function renderGrid() {
           ? `<img src="${esc(p.image_url)}" alt="${esc(p.product_name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
           : ''}
         <span class="card-img-placeholder" style="${p.image_url ? 'display:none' : 'display:flex'}">📦</span>
-        ${hasDisc ? `<span class="discount-badge">-${Math.round(p.discount)}%</span>` : ''}
-        <span class="store-badge store-${sc}">${logo}</span>
+        <span class="store-badge">${logo}</span>
       </div>
       <div class="card-body">
         ${priceChangeBadge}
         ${p.category ? `<div class="card-cat">${esc(p.category)}</div>` : ''}
         <p class="card-name">${esc(p.product_name)}</p>
-        ${(originPill || datePill) ? `<div class="card-footer">${originPill}${datePill}</div>` : ''}
-        ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} avaliações</span>` : ''}</div>` : ''}
+        ${(originPill || discPill || datePill) ? `<div class="card-footer">${originPill}${discPill}${datePill}</div>` : ''}
+        ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} vendidos</span>` : ''}</div>` : ''}
         <div class="card-price">
           ${hasPrice ? `<div class="price-current">${fmtBRL(p.price)}</div>` : ''}
           ${hasDisc && p.list_price > 0 ? `<div class="price-original">de ${fmtBRL(p.list_price)}</div>` : ''}
