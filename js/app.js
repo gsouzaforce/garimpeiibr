@@ -49,10 +49,11 @@ function showCacheBanner(ageMs, isError = false) {
   const el = document.getElementById('cacheBanner');
   if (!el) return;
   const age  = fmtCacheAge(ageMs);
-  const icon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const spinner   = `<svg class="cache-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10" stroke-opacity=".2"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>`;
+  const alertIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
   el.innerHTML = isError
-    ? `${icon}<span class="cache-banner-msg">Não foi possível atualizar. Exibindo dados salvos ${age}.</span><button class="cache-retry-btn" onclick="loadProducts()">Tentar novamente</button>`
-    : `${icon}<span class="cache-banner-msg">Atualizando lista… Exibindo dados salvos ${age}.</span>`;
+    ? `${alertIcon}<span class="cache-banner-msg">Falha ao atualizar — exibindo dados de <b>${age}</b></span><button class="cache-retry-btn" onclick="loadProducts()">Tentar novamente</button>`
+    : `${spinner}<span class="cache-banner-msg">Atualizando ofertas — exibindo dados de <b>${age}</b></span>`;
   el.style.display = 'flex';
 }
 
@@ -86,8 +87,8 @@ async function loadProducts(attempt = 1) {
     if (attempt < MAX_ATTEMPTS) {
       document.getElementById('grid').innerHTML = `
         <div class="estado">
-          <span class="estado-ico load-spinner">⟳</span>
-          <p>Reconectando… (tentativa ${attempt + 1} de ${MAX_ATTEMPTS})</p>
+          <div class="load-ring"></div>
+          <p>Buscando ofertas… (tentativa ${attempt + 1} de ${MAX_ATTEMPTS})</p>
         </div>`;
       setTimeout(() => loadProducts(attempt + 1), RETRY_DELAY[attempt]);
       return;
@@ -112,7 +113,7 @@ function buildFilters() {
   });
 
   // Nicho
-  const niches = ['todos', ...new Set(allProducts.map(p => p._niche).sort())];
+  const niches = ['todos', ...Object.entries(nichoCounts).sort((a, b) => b[1] - a[1]).map(([k]) => k)];
   document.getElementById('nichoFilters').innerHTML = niches.map(v => `
     <div class="sidebar-item ${activeNiche === v ? 'ativo' : ''}" data-value="${esc(v)}" onclick="setNiche('${esc(v)}')">
       ${v !== 'todos' ? nicheLogo(v) : ''}
@@ -121,7 +122,7 @@ function buildFilters() {
     </div>`).join('');
 
   // Plataforma
-  const plats = ['todos', ...new Set(allProducts.map(p => p._platform).sort())];
+  const plats = ['todos', ...Object.entries(platCounts).sort((a, b) => b[1] - a[1]).map(([k]) => k)];
   document.getElementById('platFilters').innerHTML = plats.map(v => `
     <div class="sidebar-item ${activePlatform === v ? 'ativo' : ''}" data-value="${esc(v)}" onclick="setPlatform('${esc(v)}')">
       ${v !== 'todos' ? platformLogo(v) : ''}
@@ -130,7 +131,7 @@ function buildFilters() {
     </div>`).join('');
 
   // Categoria (multi-select)
-  const cats = ['todos', ...new Set(allProducts.map(p => p.category).filter(Boolean).sort())];
+  const cats = ['todos', ...Object.entries(catCounts).sort((a, b) => b[1] - a[1]).map(([k]) => k)];
   document.getElementById('catFilters').innerHTML = cats.map(v => {
     const isActive = v === 'todos' ? activeCats.length === 0 : activeCats.includes(v);
     return `<div class="sidebar-item ${isActive ? 'ativo' : ''}" data-value="${esc(v)}" onclick="setCat('${esc(v)}')">
@@ -372,7 +373,7 @@ function renderGrid() {
       const isDown  = p.price_change_type === 'price_decreased';
       const cls     = isDown ? 'price-change-down' : 'price-change-up';
       const arrow   = isDown ? '↓' : '↑';
-      const verb    = isDown ? 'Preço abaixou' : 'Preço subiu';
+      const verb    = isDown ? 'Baixou' : 'Subiu';
       const sign    = isDown ? '-' : '+';
       const diffStr = p.price_difference ? fmtBRL(Math.abs(p.price_difference)) : '';
       const pctStr  = p.price_difference_percentage ? Math.abs(Math.round(p.price_difference_percentage)) + '%' : '';
@@ -384,7 +385,9 @@ function renderGrid() {
       priceChangeBadge = `<div class="price-change ${cls}" title="${esc(tooltip)}">${arrow} ${verb}${detail ? ': ' + sign + detail : ''} <span class="price-change-info" aria-hidden="true">ⓘ</span></div>`;
     }
 
-    return `<div class="card">
+    const isHotDeal = hasDisc && p.discount > 50;
+    return `<div class="card${isHotDeal ? ' card--fire' : ''}">
+      ${isHotDeal ? `<div class="fire-banner">🔥 -${Math.round(p.discount)}% · IMPERDÍVEL 🔥</div>` : ''}
       <div class="card-img">
         ${p.image_url
           ? `<img src="${esc(p.image_url)}" alt="${esc(p.product_name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
