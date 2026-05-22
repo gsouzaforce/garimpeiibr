@@ -51,7 +51,6 @@ function detectPlatform(platform) {
     case 'shopee':       return 'Shopee';
     case 'magazineluiza':return 'Magazine Luiza';
     case 'natura':       return 'Natura';
-    case 'avon':         return 'Avon';
     default:             return 'Outro';
   }
 }
@@ -63,7 +62,6 @@ function storeClass(plat) {
     'Shopee':        'shopee',
     'Magazine Luiza':'mag',
     'Natura':        'natura',
-    'Avon':          'avon',
   }[plat] || 'outro';
 }
 
@@ -73,7 +71,6 @@ const PLATFORM_LOGOS = {
   'Mercado Livre': './assets/images/logo/mercadolivre-logo.png',
   'Magazine Luiza':'./assets/images/logo/magazineluiza-logo.png',
   'Natura':        './assets/images/logo/natura-logo.png',
-  'Avon':          './assets/images/logo/avon-logo.png',
 };
 
 function platformLogo(plat) {
