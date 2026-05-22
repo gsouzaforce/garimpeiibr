@@ -112,13 +112,13 @@ function buildFilters() {
     if (p.category) catCounts[p.category] = (catCounts[p.category] || 0) + 1;
   });
 
-  // Nicho
+  // Nicho tabs
   const niches = ['todos', ...Object.entries(nichoCounts).sort((a, b) => b[1] - a[1]).map(([k]) => k)];
-  document.getElementById('nichoFilters').innerHTML = niches.map(v => `
-    <div class="sidebar-item ${activeNiche === v ? 'ativo' : ''}" data-value="${esc(v)}" onclick="setNiche('${esc(v)}')">
+  document.getElementById('nichoTabs').innerHTML = niches.map(v => `
+    <div class="nicho-tab ${activeNiche === v ? 'ativo' : ''}" data-value="${esc(v)}" onclick="setNiche('${esc(v)}')">
       ${v !== 'todos' ? nicheLogo(v) : ''}
-      <span class="sidebar-label">${v === 'todos' ? 'Todos' : nicheDisplayName(v)}</span>
-      <span class="sidebar-count">${v === 'todos' ? allProducts.length : (nichoCounts[v] || 0)}</span>
+      <span>${v === 'todos' ? 'Todos' : nicheDisplayName(v)}</span>
+      <span class="nicho-count">${v === 'todos' ? allProducts.length : (nichoCounts[v] || 0)}</span>
     </div>`).join('');
 
   // Plataforma
@@ -146,7 +146,7 @@ function buildFilters() {
 // ── SETTERS ───────────────────────────────────────────────────────────────────
 function setNiche(v) {
   activeNiche = v;
-  document.querySelectorAll('#nichoFilters .sidebar-item').forEach(el =>
+  document.querySelectorAll('#nichoTabs .nicho-tab').forEach(el =>
     el.classList.toggle('ativo', el.dataset.value === v)
   );
   page = 1; updateActiveFilterCount(); applyFilters();
@@ -397,16 +397,16 @@ function renderGrid() {
         <span class="store-badge">${logo}</span>
       </div>
       <div class="card-body">
-        ${priceChangeBadge}
         ${p.category ? `<div class="card-cat">${esc(p.category)}</div>` : ''}
         <p class="card-name">${esc(p.product_name)}</p>
-        ${(originPill || discPill || datePill) ? `<div class="card-footer">${originPill}${discPill}${datePill}</div>` : ''}
-        ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} vendidos</span>` : ''}</div>` : ''}
         <div class="card-price">
           ${hasPrice ? `<div class="price-current">${fmtBRL(p.price)}</div>` : ''}
           ${hasDisc && p.list_price > 0 ? `<div class="price-original">de ${fmtBRL(p.list_price)}</div>` : ''}
           ${saving ? `<div class="price-saving">Economia de ${saving}</div>` : ''}
         </div>
+        ${priceChangeBadge}
+        ${(originPill || discPill || datePill) ? `<div class="card-footer">${originPill}${discPill}${datePill}</div>` : ''}
+        ${p.rating_star > 0 ? `<div class="card-rating"><span class="rating-stars">★ ${p.rating_star}</span>${rev ? `<span>${rev} vendidos</span>` : ''}</div>` : ''}
         <a href="${esc(p.affiliate_link)}" target="_blank" rel="noopener sponsored" class="btn-deal">
           Ver oferta
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>

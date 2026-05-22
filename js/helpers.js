@@ -3,9 +3,9 @@
    Adicione novos nichos conforme aparecerem nos produtos.               */
 const NICHE_MAP = {
   'eletronicos':  { name: 'Eletrônicos',    color: '#00008c' },
-  'beleza':       { name: 'Beleza',          color: '#cc0070' },
+  'beleza':       { name: 'Beleza & Skincare',          color: '#cc0070' },
   'mercado':      { name: 'Mercado',         color: '#1a6b2e' },
-  'casa':         { name: 'Casa & Cozinha',  color: '#c87800' },
+  'casa':         { name: 'Casa & Decoração',  color: '#c87800' },
   'moda':         { name: 'Moda',            color: '#5c0080' },
   'esportes':     { name: 'Esportes',        color: '#e8200c' },
   'informatica':  { name: 'Informática',     color: '#003494' },
@@ -45,23 +45,35 @@ function nicheLogo(slug) {
 /* ── PLATFORM ──────────────────────────────────────────────────────────────── */
 function detectPlatform(platform) {
   if (!platform) return 'Outro';
-  const l = platform.toLowerCase();
-  if (platform === 'amazon') return 'Amazon';
-  if (platform === 'mercadolivre') return 'Mercado Livre';
-  if (platform === 'shopee') return 'Shopee';
-  if (platform === 'magazineluiza') return 'Magazine Luiza';
-  return 'Outro';
+  switch (platform.toLowerCase()) {
+    case 'amazon':       return 'Amazon';
+    case 'mercadolivre': return 'Mercado Livre';
+    case 'shopee':       return 'Shopee';
+    case 'magazineluiza':return 'Magazine Luiza';
+    case 'natura':       return 'Natura';
+    case 'avon':         return 'Avon';
+    default:             return 'Outro';
+  }
 }
 
 function storeClass(plat) {
-  return { 'Amazon': 'amazon', 'Mercado Livre': 'ml', 'Shopee': 'shopee', 'Magazine Luiza': 'mag' }[plat] || 'outro';
+  return {
+    'Amazon':        'amazon',
+    'Mercado Livre': 'ml',
+    'Shopee':        'shopee',
+    'Magazine Luiza':'mag',
+    'Natura':        'natura',
+    'Avon':          'avon',
+  }[plat] || 'outro';
 }
 
 const PLATFORM_LOGOS = {
-  'Amazon': './assets/images/logo/amazon-logo.png',
-  'Shopee': './assets/images/logo/shopee-logo.png',
+  'Amazon':        './assets/images/logo/amazon-logo.png',
+  'Shopee':        './assets/images/logo/shopee-logo.png',
   'Mercado Livre': './assets/images/logo/mercadolivre-logo.png',
-  'Magazine Luiza': './assets/images/logo/magazineluiza-logo.png',
+  'Magazine Luiza':'./assets/images/logo/magazineluiza-logo.png',
+  'Natura':        './assets/images/logo/natura-logo.png',
+  'Avon':          './assets/images/logo/avon-logo.png',
 };
 
 function platformLogo(plat) {

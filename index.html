@@ -22,11 +22,16 @@
       <span class="nav-brand-name">Garimpeii <span>BR</span></span>
     </a>
     <div class="nav-right">
-        <a href="https://www.magazinevoce.com.br/garimpeiibr" target="_blank" rel="noopener" class="btn-mag-featured">
-          <div class="mag-featured-left">
-            <img src="./assets/images/logo/magazine-negativo.png">
-          </div>
-        </a>
+      <a href="https://www.minhaloja.natura.com/consultoria/garimpeiibr?marca=avon" target="_blank" rel="noopener" class="btn-brand-afil" title="Avon">
+        <svg width="51" height="16" viewBox="0 0 171 54" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M138.583 52.4431H131.355V1.40088H141.266L163.759 41.1993V1.40088H171V52.4431H161.827L138.641 11.6713L138.583 52.4431Z" fill="#FF2469"/><path d="M102.323 53.8413C88.3959 53.8413 77.6187 42.5504 77.6187 26.9207C77.6187 11.2909 88.3959 0 102.323 0C116.25 0 127.099 11.2909 127.099 26.9207C127.099 42.5504 116.322 53.8413 102.323 53.8413ZM102.323 46.5884C112.264 46.5884 119.262 37.9874 119.262 26.9207C119.262 15.8539 112.264 7.25298 102.323 7.25298C92.3821 7.25298 85.4559 15.851 85.4559 26.9207C85.4559 37.9904 92.4539 46.5884 102.323 46.5884Z" fill="#FF2469"/><path d="M17.916 1.39795L0 52.4402H7.69368L22.8767 9.18184L38.0598 52.4402H45.7535L27.8375 1.39795H17.9132H17.916Z" fill="#FF2469"/><path d="M52.583 52.4431L34.667 1.40088H42.3607L57.5437 44.6592L72.7268 1.40088H80.4205L62.5045 52.4431H52.5803H52.583Z" fill="#FF2469"/></svg>
+      </a>
+      <a href="https://www.minhaloja.natura.com/consultoria/garimpeiibr?marca=natura" target="_blank" rel="noopener" class="btn-brand-afil" title="Natura">
+        <img src="./assets/images/logo/natura-logo.png" alt="Natura" style="max-height:20px;width:auto;display:block;">
+      </a>
+      <a href="https://www.magazinevoce.com.br/garimpeiibr" target="_blank" rel="noopener" class="btn-brand-afil" title="Magazine Luiza">
+        <img src="./assets/images/logo/magazineluiza-logo.png" alt="Magazine Luiza" style="max-height:20px;width:auto;display:block;">
+      </a>
+      <span class="nav-sep"></span>
       <a href="https://t.me/addlist/7TUbH1Kh9RRiMDBh" target="_blank" rel="noopener" class="btn-nav-social btn-nav-telegram" title="Canal no Telegram">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-2.008 9.461c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.32 14.605l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.496.981z"/></svg>
       </a>
@@ -55,20 +60,6 @@
         Filtros
       </span>
       <button class="sidebar-reset-btn" onclick="resetFilters()">Limpar tudo</button>
-    </div>
-
-    <!-- Search -->
-    <div class="sidebar-section">
-      <div class="sidebar-search">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Buscar produtos…" oninput="setSearch(this.value)" autocomplete="off" />
-      </div>
-    </div>
-
-    <!-- Nicho -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Nicho</div>
-      <div id="nichoFilters"></div>
     </div>
 
     <!-- Platform -->
@@ -160,6 +151,15 @@
       Filtros
       <span class="toggle-active-count" id="activeFilterCount"></span>
     </button>
+
+    <!-- Search bar -->
+    <div class="content-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar produtos…" oninput="setSearch(this.value)" autocomplete="off" />
+    </div>
+
+    <!-- Nicho tabs -->
+    <div class="nicho-tabs" id="nichoTabs"></div>
 
     <!-- Toolbar -->
     <div class="toolbar">
